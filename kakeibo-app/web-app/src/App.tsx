@@ -1,7 +1,12 @@
+import {Button, Heading} from "@chakra-ui/react";
+
 function App() {
   return (
     <>
-      <h1>My Kakeibo App</h1>
+      <Heading as="h1">My Kakeibo App</Heading>
+      <Button colorPalette="teal" fontWeight="bold">
+        登録
+      </Button>
     </>
   );
 }
