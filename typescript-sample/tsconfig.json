@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // 使える標準機能(Array, Promiseなど)の型定義
+    "lib": ["ES2024"],
+
+    // import/export の変換方式
+    "module": "nodenext",
+
+    // import したファイルの探し方
+    "moduleResolution": "nodenext",
+
+    // 出力するJavaScriptのバージョン
+    "target": "ES2024",
+
+    // 読み込む型定義
+    "types": ["node"],
+
+    // 厳密な型チェックを全部ONにする
+    "strict": true,
+
+    // TypeScriptのソースコードを置く場所
+    "rootDir": "./src",
+
+    // コンパイル後のJavaScriptの出力先
+    "outDir": "./dist"
+  }
+}
