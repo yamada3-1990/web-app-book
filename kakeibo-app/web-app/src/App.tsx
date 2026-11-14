@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "@/pages/Home";
+import InputPage from "@/pages/Input";
 
 
 function App() {
@@ -7,6 +8,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/input" element={<InputPage />} />
             </Routes>
         </BrowserRouter>
     );
