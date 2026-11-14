@@ -1,4 +1,4 @@
-import { Box, Button, Container, Text, Flex, Card, Heading } from "@chakra-ui/react";
+import { Box, Button, Container, Text, Flex, Card, Heading, Grid, GridItem } from "@chakra-ui/react";
 import { FaPlus } from "react-icons/fa";
 import {
   RecentIncomeTransactionList,
@@ -20,19 +20,27 @@ function App() {
           My Kakeibo App
         </Text>
       </Box>
-      <Container as="main" maxW="4xl" py={8}>
-        <Flex justifyContent="flex-end">
-          <Button colorPalette="teal" fontWeight="bold">
-            <FaPlus />
-            登録
-          </Button>
-        </Flex>
-        <SummaryCard title="収入履歴">
-          <RecentIncomeTransactionList maxTransactions={3} />
-        </SummaryCard>
-        <SummaryCard title="支出履歴">
-          <RecentExpenseTransactionList maxTransactions={3} />
-        </SummaryCard>
+      <Container as="main" maxW="4xl" py={6}>
+        <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+          <GridItem colSpan={2}>
+            <Flex justifyContent="flex-end">
+              <Button colorPalette="teal" fontWeight="bold">
+                <FaPlus />
+                登録
+              </Button>
+            </Flex>
+          </GridItem>
+          <GridItem>
+            <SummaryCard title="収入履歴">
+              <RecentIncomeTransactionList maxTransactions={3} />
+            </SummaryCard>
+          </GridItem>
+          <GridItem>
+            <SummaryCard title="支出履歴">
+              <RecentExpenseTransactionList maxTransactions={3} />
+            </SummaryCard>
+          </GridItem>
+        </Grid>
       </Container>
     </>
   );
