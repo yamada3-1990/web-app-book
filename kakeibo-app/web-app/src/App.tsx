@@ -1,9 +1,20 @@
-import {Button, Heading} from "@chakra-ui/react";
+import {Box, Button, Heading, Text} from "@chakra-ui/react";
 
 function App() {
   return (
     <>
-      <Heading as="h1">My Kakeibo App</Heading>
+    <Box
+      as="header"
+      bg="teal.500"
+      color="white"
+      py={4}
+      textAlign="center"
+      boxShadow="md"
+    >
+      <Text as="h1" fontSize="2xl" fontWeight="bold">
+        My Kakeibo App
+      </Text>
+      </Box>
       <Button colorPalette="teal" fontWeight="bold">
         登録
       </Button>
