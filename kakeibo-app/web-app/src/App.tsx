@@ -1,4 +1,4 @@
-import { Box, Button, Container, Text, Flex } from "@chakra-ui/react";
+import { Box, Button, Container, Text, Flex, Card, Heading } from "@chakra-ui/react";
 import { FaPlus } from "react-icons/fa";
 
 function App() {
@@ -23,9 +23,26 @@ function App() {
             登録
           </Button>
         </Flex>
+        <SummaryCard title="周遊履歴">
+          <Text>ここに周遊履歴の内容が表示されます。</Text>
+        </SummaryCard>
       </Container>
     </>
   );
 }
+const SummaryCard: React.FC<{
+  title: string;
+  children: React.ReactNode;
+}> = ({ title, children }) => {
+  return (
+    <Card.Root variant="elevated">
+      <Card.Header>
+        <Heading size="md"> {title} </Heading>
+      </Card.Header>
+      <Card.Body>{children}</Card.Body>
+    </Card.Root>
+  )
+}
+
 
 export default App;
