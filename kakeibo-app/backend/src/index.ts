@@ -2,6 +2,17 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { env } from './env.js'
+import { Client } from "pg";
+
+const client = new Client({
+  host: "localhost",
+  port: 5432,
+  database: "kakeibo_db",
+  user: "postgres",
+  password: "password",
+});
+
+await client.connect();
 
 const app = new Hono()
 
@@ -15,9 +26,19 @@ app.use(
   })
 );
 
+
+// 日付をYYYY-MM-DD形式に変換する関数
+const toYMD = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 // GET /transactions - 取引履歴一覧の取得
 app.get("/transactions", async (c) => {
   const type = c.req.query("type");
+
   // クエリパラメーターのバリデーション
   // typeがセットされていない・値が入っていない、
   // typeが"income", "expense", "all"のいずれでもない場合はエラーを返す
@@ -28,39 +49,56 @@ app.get("/transactions", async (c) => {
     ); // エラー返却
   }
 
-  // TODO: 取引履歴を取得するために、DBへ接続し、データを取得する。
-  // 以下はモックデータ
-  const transactionList = [
-    {
-      id: 1,
-      item: "給料",
-      amount: 100000,
-      date: "2025-01-01",
-    },
-    {
-      id: 2,
-      item: "食費",
-      amount: -10000,
-      date: "2025-01-02",
-    },
-  ];
+  // 履歴取得クエリの共通部分
+  let historyQuery = `SELECT id, item, amount, date FROM transactions`;
+  // 履歴カウントクエリの共通部分
+  let countQuery = `SELECT COUNT(*) as total FROM transactions`;
+  // パラメータの配列
+  const params: string[] = [];
+
+  if (type === "income" || type === "expense") {
+    // typeがincomeの場合は amount > 0、
+    // expenseの場合は amount < 0の条件をクエリに追加する
+    const addTypeQuery =
+      type === "income" ? ` WHERE amount > 0` : ` WHERE amount < 0`;
+    historyQuery += addTypeQuery;
+    countQuery += addTypeQuery;
+  }
+
+  // 取得順は日付の降順とする
+  historyQuery += ` ORDER BY date DESC`;
+
+  // クエリ実行
+  const historyResult = await client.query(historyQuery, params);
+  const countResult = await client.query(countQuery, params);
+
+  // 取得履歴を作成
+  const transactions = historyResult.rows.map((row) => ({
+    id: parseInt(row.id),
+    item: row.item,
+    amount: parseFloat(row.amount), // 実際の値(正負含む)を返す
+    date: toYMD(new Date(row.date)),
+  }));
+
+  // 合計金額を計算
+  const totalAmount = transactions.reduce(
+    (sum, transaction) => sum + transaction.amount,
+    0,
+  );
 
   const result = {
-    transactions: transactionList,
-    totalCount: transactionList.length, // 総取引数
-    totalAmount: transactionList.reduce(
-      (sum, transaction) => sum + transaction.amount,
-      0,
-    ), // 合計金額
+    transactions,
+    totalCount: parseInt(countResult.rows[0].total),
+    totalAmount,
   };
 
   return c.json(result, 200); // 正常なレスポンスを返却
 });
 
+// POST /transactions - 取引情報の登録
 app.post("/transactions", async (c) => {
   const body = await c.req.json();
-  // リクエストボディ抽出
-  const { item, amount, date } = body;
+  const { item, amount, date } = body; // ボディパラメーター抽出
 
   // バリデーション
   if (!item || amount === undefined || !date) {
@@ -75,13 +113,24 @@ app.post("/transactions", async (c) => {
 
   // 日付の形式チェック
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    // 日付形式チェック
     return c.json({ message: "日付はYYYY-MM-DD形式で入力してください" }, 400);
   }
 
-  // TODO: 登録処理を行うために、データベースへ接続し、データを登録する。
-  // ボディ・ステータスコード返却
-  return c.json(body, 201);
+  // データベースへの登録処理を実行(追加)
+  const result = await client.query(
+    `INSERT INTO transactions (item, amount, date) VALUES ($1, $2, $3) RETURNING id, item, amount, date`,
+    [item, amount, date]
+  );
+
+  // 登録されたデータを整形(追加)
+  const newTransaction = {
+    id: parseInt(result.rows[0].id),
+    item: result.rows[0].item,
+    amount: parseFloat(result.rows[0].amount),
+    date: toYMD(new Date(result.rows[0].date))
+  }
+
+  return c.json(newTransaction, 201); // ステータスコード201で返却
 });
 
 serve({
